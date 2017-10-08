@@ -1,10 +1,3 @@
-
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the edmaxor.
- */
 package pkg1;
 import java.io.File;
 import java.io.BufferedReader;
@@ -12,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import javax.swing.*;
+import java.util.HashMap;
 
 public class Main {
 private static String source;
@@ -44,66 +38,80 @@ private static String source;
 
         JTextField minField = new JTextField(5);
         JTextField maxField = new JTextField(5);
+        JTextField n = new JTextField(5);
+        JTextField minOrganismEntries = new JTextField(5);
 
         JPanel myPanel = new JPanel();
-        myPanel.add(new JLabel("Minimum intensity:"));
-        myPanel.add(minField);
-        myPanel.add(Box.createHorizontalStrut(15)); // a spacer
-        myPanel.add(new JLabel("Maximum intensity:"));
-        myPanel.add(maxField);
-
-        int min=-1;
-        int max=-1;
+        myPanel.add(new JLabel("Remove records with gene names appearing < this many times:"));
+        myPanel.add(minOrganismEntries);
+        int mino=0;
         int result = JOptionPane.showConfirmDialog(null, myPanel, 
-                 "Enter intensity range, then drag a .csv source file to the other window.", JOptionPane.OK_CANCEL_OPTION);
+                 "Enter parameters, then drag a .csv source file to the other window.", JOptionPane.OK_CANCEL_OPTION);
         if (result == JOptionPane.OK_OPTION) {
-            String mi=minField.getText();
-            String ma=maxField.getText();
-            while((!isInteger(mi)||!isInteger(ma))&&result==JOptionPane.OK_OPTION){
+            String minos=minOrganismEntries.getText();
+            while((!isInteger(minos))&&result==JOptionPane.OK_OPTION){
                 result = JOptionPane.showConfirmDialog(null, myPanel, 
-                 "Enter intensity range, then drag a .csv source file to the other window.", JOptionPane.OK_CANCEL_OPTION);
+                 "Enter parameters, then drag a .csv source file to the other window.", JOptionPane.OK_CANCEL_OPTION);
                 if (result == JOptionPane.OK_OPTION) {
-                    mi=minField.getText();
-                    ma=maxField.getText();
+                    minos=minOrganismEntries.getText();
                 }
                 else System.exit(0);
             }
             if (result == JOptionPane.OK_OPTION) {
-                min=Integer.parseInt(mi);
-                max=Integer.parseInt(ma);
+                mino=Integer.parseInt(minos);
             }
             else System.exit(0);
         }
         else System.exit(0);
         
-        while(source.equals("a"))
+        while(source.equals("a")) //while source file has not been set (default is "a")
             System.out.println("");
         BufferedReader s = new BufferedReader(new FileReader(new File(source)));
         BufferedWriter w = new BufferedWriter(new FileWriter(new File("CadaverOutput.csv")));
-        int count=0;
         String line[];
+        HashMap<String,Integer> h = new HashMap<>();
         while(s.ready()){
             line = s.readLine().split(",");
-            count ++;
-            if((line.length>7&&line[7].length()>0&&isInteger(line[7])&&Integer.parseInt(line[7])>=min&&Integer.parseInt(line[7])<=max)||
-            (line.length>8&&line[8].length()>0&&isInteger(line[8])&&Integer.parseInt(line[8])>=min&&Integer.parseInt(line[8])<=max)||
-            (line.length>9&&line[9].length()>0&&isInteger(line[9])&&Integer.parseInt(line[9])>=min&&Integer.parseInt(line[9])<=max)||
-            (line.length>10&&line[10].length()>0&&isInteger(line[10])&&Integer.parseInt(line[10])>=min&&Integer.parseInt(line[10])<=max)||
-            (line.length>11&&line[11].length()>0&&isInteger(line[11])&&Integer.parseInt(line[11])>=min&&Integer.parseInt(line[11])<=max)||
-            (line.length>12&&line[12].length()>0&&isInteger(line[12])&&Integer.parseInt(line[12])>=min&&Integer.parseInt(line[12])<=max)||
-            (line.length>13&&line[13].length()>0&&isInteger(line[13])&&Integer.parseInt(line[13])>=min&&Integer.parseInt(line[13])<=max)||
-            (line.length>14&&line[14].length()>0&&isInteger(line[14])&&Integer.parseInt(line[14])>=min&&Integer.parseInt(line[14])<=max)||
-            (line.length>15&&line[15].length()>0&&isInteger(line[15])&&Integer.parseInt(line[15])>=min&&Integer.parseInt(line[15])<=max)||
-            (line.length>16&&line[16].length()>0&&isInteger(line[16])&&Integer.parseInt(line[16])>=min&&Integer.parseInt(line[16])<=max)||
-            (line.length>17&&line[17].length()>0&&isInteger(line[17])&&Integer.parseInt(line[17])>=min&&Integer.parseInt(line[17])<=max)||
-            (line.length>18&&line[18].length()>0&&isInteger(line[18])&&Integer.parseInt(line[18])>=min&&Integer.parseInt(line[18])<=max)){
-                //w.write(count+" ");//System.out.print(count+" "); //Debugger code
-                for(int i=0;i<line.length;i++){
-                    w.write(line[i]);//System.out.print(str+" ");
-                    if(i<line.length-1)
+            String geneName=line[1];
+            if(h.containsKey(geneName))
+                h.replace(geneName, h.get(geneName)+1);
+            else
+                h.put(geneName, 1);
+        }
+        s.close(); w.close();
+        
+        s = new BufferedReader(new FileReader(new File(source)));
+        w = new BufferedWriter(new FileWriter(new File("CadaverOutput.csv")));
+        int c = 7;
+        line = s.readLine().split(",");
+        for(int i=0;i<line.length;i++)
+        {
+            w.write(line[i]);
+            if(i<line.length-1)
+                w.write(",");
+        }
+        w.newLine();
+        while(s.ready()){
+            line = s.readLine().split(",");
+            if(h.get(line[1])>=mino)
+            {
+                int i=0;
+                    for(i=0;i<line.length;i++){
+                            String l=line[i];
+                            if(isDouble(l)){
+                                Long rounded = Math.round(Double.parseDouble(line[i]));
+                                w.write(rounded.toString());
+                            }
+                            else
+                                w.write(l);
+                            if(i<line.length-1)
+                                w.write(",");
+                    }
+                    while(i<19){
                         w.write(",");
-                }
-                w.newLine();//System.out.println("");
+                        i++;
+                    }
+                    w.newLine();
             }
         }
         s.close(); w.close();
@@ -135,5 +143,34 @@ private static String source;
         return true;
     }
     
+    public static boolean isDouble(String str) {
+        if (str == null) {
+            return false;
+        }
+        int length = str.length();
+        if (length == 0) {
+            return false;
+        }
+        int i = 0;
+        if (str.charAt(0) == '-') {
+            if (length == 1) {
+                return false;
+            }
+            i = 1;
+        }
+        boolean decimalFlag=false;
+        for (; i < length; i++) {
+            char c = str.charAt(i);
+            if ((c < '0' || c > '9')) {
+                if(c=='.'){
+                    if(decimalFlag==true)
+                        return false;
+                    decimalFlag=true;
+                }
+                else return false;
+            }
+        }
+        return true;
+    }
     
 }
