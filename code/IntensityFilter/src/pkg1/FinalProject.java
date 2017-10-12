@@ -244,10 +244,10 @@ public class FinalProject {
             //String line;
 
             String result = JOptionPane.showInputDialog(null, 
-                    "Please input gene name. "
+                    "Please input Organism name. "
                             + "(Inputs that don't exist in "
                             + "file will result in empty file)", 
-                    "Need gene name", 
+                    "Need Organism name", 
                     JOptionPane.QUESTION_MESSAGE);
             //This is your buffer, where you are writing all your lines to
             List<String> fileContents = new ArrayList<String>();
