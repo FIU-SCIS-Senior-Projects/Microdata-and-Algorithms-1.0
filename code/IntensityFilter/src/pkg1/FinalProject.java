@@ -221,13 +221,19 @@ public class FinalProject {
 
         JOptionPane.showMessageDialog(myPanel, "Finished. Results stored in "+System.getProperty("user.dir")+"\\CadaverOutput.csv.");
         
-        geneSubQuery();
+        geneSubQuery(s, w);
         
         System.exit(0);
 
     }
 
-    public static void geneSubQuery(){
+    /**
+     *
+     * @param reader
+     * @param write
+     * 
+     */
+    public static void geneSubQuery(BufferedReader reader, BufferedWriter write){
         try {
             //This is the file you are reading from/writing to
             File file = new File(System.getProperty("user.dir")+"\\ProjectData.csv");
@@ -236,9 +242,9 @@ public class FinalProject {
             File newFile = new File(System.getProperty("user.dir")+"\\ProjectOutput.csv");
 
             //Creates a reader for the file
-            BufferedReader br = new BufferedReader(new FileReader(file));
+             reader = new BufferedReader(new FileReader(file));
             
-             BufferedWriter bw = new BufferedWriter(new FileWriter(newFile));
+              write  = new BufferedWriter(new FileWriter(newFile));
 
             String line;
             //String line;
@@ -269,19 +275,17 @@ public class FinalProject {
             }
           
             
-                while ((line = br.readLine()) != null) {
-                                   
-
-                    if (line.matches("(.*)" + result + "(.*)") || line.matches("(.*)" + result) || line.matches(result + "(.*)")) {
-                        fileContents.add(line);
-                    
-                    } 
+                while ((line = reader.readLine()) != null) {
+                   
+                      if(line.contains(result)){
+                          fileContents.add(line);
+                      }
                     
             }
 
                 
                 //close our reader so we can re-use the file
-                br.close();
+                reader.close();
 
                 //create a writer
                
@@ -289,19 +293,92 @@ public class FinalProject {
                 //loop through our buffer
                 for (String s : fileContents) {
                     //write the line to our file
-                    bw.write(s);
-                    bw.newLine();
+                    write.write(s);
+                    write.newLine();
                 }
 
                 //close the writer
-                bw.close();
-                
+                write.close();
+                                
                 JOptionPane.showMessageDialog(null, "Finished. Results stored in "+System.getProperty("user.dir")+"\\ProjectOutput.csv.");
             
+                superKingdom(reader,write);
+                
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
     }
+    
+    public static void superKingdom(BufferedReader input, BufferedWriter output) {
+
+        try {//This is the file you are reading from/writing to
+            File theFile = new File(System.getProperty("user.dir")+"\\ProjectData.csv");
+
+            //Thisis the file to write to
+            File theNewFile = new File(System.getProperty("user.dir")+"\\ProjectOutcome.csv");
+
+            //Creates a reader for the file
+            input = new BufferedReader(new FileReader(theFile));
+
+            output = new BufferedWriter(new FileWriter(theNewFile));
+
+            String line;
+            //String line;
+
+            String result = JOptionPane.showInputDialog(null,
+                    "Please input gene name, organism name or etc. "
+                    + "(Inputs that don't exist in "
+                    + "file will result in empty file)",
+                    "Need somekind input for SuperKingdom",
+                    JOptionPane.QUESTION_MESSAGE);
+            //This is your buffer, where you are writing all your lines to
+            List<String> fileContents = new ArrayList<String>();
+
+            //loop through each line
+            //while (result != null) {
+            if (result == null) {//Cancel with no input or close the dialog box
+                JOptionPane.showMessageDialog(null,
+                        "Error. Empty file",
+                        "Cancel or close for Superkingdom Error box",
+                        JOptionPane.ERROR_MESSAGE);
+            } else if (result.isEmpty()) {//Ok with no input
+                JOptionPane.showMessageDialog(null,
+                        "No. You got it wrong. "
+                        + "Same file, no changes",
+                        "Ok with no input for Superkingdom Error box",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+
+            while ((line = input.readLine()) != null) {
+
+                if (line.contains(result) && line.contains("superkingdom")) {
+                    fileContents.add(line);
+
+                }
+
+            }
+
+            //close our reader so we can re-use the file
+            input.close();
+
+            //create a writer
+            //loop through our buffer
+            for (String s : fileContents) {
+                //write the line to our file
+                output.write(s);
+                output.newLine();
+            }
+
+            //close the writer
+            output.close();
+
+            JOptionPane.showMessageDialog(null, "Finished. Results stored in " + System.getProperty("user.dir") + "\\ProjectOutcome.csv.");
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+
+    }
+
 
     public static boolean isString(String input){
         if(!input.matches("[a-zA-Z ,_]*")){
