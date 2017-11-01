@@ -77,7 +77,7 @@ public class IntensityFilter {
                             int y = Integer.parseInt(high[x]);
                             if (y < numResult) {
                                 list.add(hi);
-
+                                break;
                                 //System.out.println(high[x]);
                             }
 
