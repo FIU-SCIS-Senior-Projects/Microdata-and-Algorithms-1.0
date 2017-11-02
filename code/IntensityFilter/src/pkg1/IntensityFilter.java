@@ -26,9 +26,9 @@ public class IntensityFilter {
 
             JOptionPane.showMessageDialog(null,
                     "Please enter number for input. "
-                            + "If your number is too small for "
-                            + " our records then you get empty"
-                            + " file",
+                    + "If your number is too small for "
+                    + " our records then you get empty"
+                    + " file",
                     "Message disclaimer ",
                     JOptionPane.INFORMATION_MESSAGE);
 
@@ -40,73 +40,241 @@ public class IntensityFilter {
 
             BufferedWriter csvOutput = new BufferedWriter(new FileWriter(newFile));
 
-            String result = JOptionPane.showInputDialog(null,
-                    "Please enter number that "
-                    + "for the less than "
-                    + "intensity filter",
-                    "Need numeric input",
+            String options = JOptionPane.showInputDialog(null,
+                    "Please enter a letter a, b, or c "
+                    + "for the option to have min, max "
+                    + "or range filter respectively."
+                    + " No other letters will be accepted."
+                    + " Thank you.",
+                    "Need Letter Input",
                     JOptionPane.QUESTION_MESSAGE);
 
-            if (result == null || result.isEmpty()) {//Cancel with no input or close the dialog box or press ok with no input
+            if (options == null || options.isEmpty()) {
                 JOptionPane.showMessageDialog(null,
-                        "Error. Empty file",
-                        "Error box",
+                        "Error. Need letter option",
+                        "ErrorBox 3",
                         JOptionPane.ERROR_MESSAGE);
+                System.exit(0);
             } else {
 
-                int numResult = Integer.parseInt(result);
+                if (options.equalsIgnoreCase("a")) {
 
-                String[] high;
+                    JOptionPane.showMessageDialog(null,
+                            "You have chosen the min or "
+                            + "less than part of the program",
+                            "Min box",
+                            JOptionPane.INFORMATION_MESSAGE);
 
-                ArrayList<String> list = new ArrayList();
+                    String min = JOptionPane.showInputDialog(null,
+                            "Please enter number that "
+                            + "for the min "
+                            + "intensity filter",
+                            "Need numeric input",
+                            JOptionPane.QUESTION_MESSAGE);
 
-                int count = 0;
+                    if (min == null || min.isEmpty()) {//Cancel with no input or close the dialog box or press ok with no input
+                        JOptionPane.showMessageDialog(null,
+                                "Error. Empty file",
+                                "Error box",
+                                JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        int numResult = Integer.parseInt(min);
 
-                String hi;
-                
-                while ((hi = csvFileReader.readLine()) != null) {
-                    high = hi.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+                        String[] high;
+
+                        ArrayList<String> list = new ArrayList();
+
+                        int count = 0;
+
+                        String hi;
+
+                        while ((hi = csvFileReader.readLine()) != null) {
+                            high = hi.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
 //                    boolean flag = false;
 //                    String hi2 = csvFileReader.readLine();
 //                for(int z = 0; z < high.length;z++){
 //                    System.out.print(high[z]+ " ");
 //                }
-                    //System.out.println();
-                    for (int x = 7; x < high.length; x++) {
-                        if (high[x].length() != 0 && count != 0) {
-                            int y = Integer.parseInt(high[x]);
-                            if (y < numResult) {
-                                list.add(hi);
-                                break;
-                                //System.out.println(high[x]);
+                            //System.out.println();
+                            for (int x = 7; x < high.length; x++) {
+                                if (high[x].length() != 0 && count != 0) {
+                                    int y = Integer.parseInt(high[x]);
+                                    if (y < numResult) {
+                                        list.add(hi);
+                                        break;
+                                        //System.out.println(high[x]);
+                                    }
+
+                                }
+
+                            }
+                            count++;
+                        }
+
+                        // System.out.println("Hello");
+                        for (String x : list) {
+                            csvOutput.write(x);
+                            csvOutput.newLine();
+                        }
+
+                        csvFileReader.close();
+                        csvOutput.close();
+
+                        JOptionPane.showMessageDialog(null,
+                                "Bye everybody. Thanks for"
+                                + " your business",
+                                "Farewell box",
+                                JOptionPane.PLAIN_MESSAGE);
+                    }
+                } else if (options.equalsIgnoreCase("b")) {
+                    JOptionPane.showMessageDialog(null,
+                            "You have chosen the max or "
+                            + "the greater than part of the program",
+                            "Max box",
+                            JOptionPane.INFORMATION_MESSAGE);
+
+                    String max = JOptionPane.showInputDialog(null,
+                            "Please enter number that "
+                            + "for the max "
+                            + "intensity filter",
+                            "Need numeric input",
+                            JOptionPane.QUESTION_MESSAGE);
+
+                    if (max == null || max.isEmpty()) {
+                        JOptionPane.showMessageDialog(null,
+                                "Error. Empty file",
+                                "Error box 2",
+                                JOptionPane.ERROR_MESSAGE);
+                    } else {
+
+                        int numResult = Integer.parseInt(max);
+
+                        String[] high;
+
+                        ArrayList<String> list = new ArrayList();
+
+                        int count = 0;
+
+                        String hi;
+
+                        while ((hi = csvFileReader.readLine()) != null) {
+                            high = hi.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+//                    boolean flag = false;
+//                    String hi2 = csvFileReader.readLine();
+//                for(int z = 0; z < high.length;z++){
+//                    System.out.print(high[z]+ " ");
+//                }
+                            //System.out.println();
+                            for (int x = 7; x < high.length; x++) {
+                                if (high[x].length() != 0 && count != 0) {
+                                    int y = Integer.parseInt(high[x]);
+                                    if (y > numResult) {
+                                        list.add(hi);
+                                        break;
+                                        //System.out.println(high[x]);
+                                    }
+
+                                }
+
+                            }
+                            count++;
+                        }
+
+                        // System.out.println("Hello");
+                        for (String x : list) {
+                            csvOutput.write(x);
+                            csvOutput.newLine();
+                        }
+
+                        csvFileReader.close();
+                        csvOutput.close();
+
+                        JOptionPane.showMessageDialog(null,
+                                "Bye everybody. Thanks for"
+                                + " your business",
+                                "Farewell box",
+                                JOptionPane.PLAIN_MESSAGE);
+                    }
+                } else if (options.equalsIgnoreCase("c")) {
+                    JOptionPane.showMessageDialog(null,
+                            "You have chosen the  min and max or "
+                            + "the less than and greater than part of the program",
+                            "Max box",
+                            JOptionPane.INFORMATION_MESSAGE);
+
+                    String min = JOptionPane.showInputDialog(null,
+                            "Please enter number that "
+                            + "for the min "
+                            + "intensity filter",
+                            "Need numeric input",
+                            JOptionPane.QUESTION_MESSAGE);
+
+                    String max = JOptionPane.showInputDialog(null,
+                            "Please enter number that "
+                            + "for the max "
+                            + "intensity filter",
+                            "Need numeric input",
+                            JOptionPane.QUESTION_MESSAGE);
+
+                    int numResult = Integer.parseInt(min);
+
+                    int numResult2 = Integer.parseInt(max);
+
+                    String[] high;
+
+                    ArrayList<String> list = new ArrayList();
+
+                    int count = 0;
+
+                    String hi;
+
+                    while ((hi = csvFileReader.readLine()) != null) {
+                        high = hi.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+//                    boolean flag = false;
+//                    String hi2 = csvFileReader.readLine();
+//                for(int z = 0; z < high.length;z++){
+//                    System.out.print(high[z]+ " ");
+//                }
+                        //System.out.println();
+                        for (int x = 7; x < high.length; x++) {
+                            if (high[x].length() != 0 && count != 0) {
+                                int y = Integer.parseInt(high[x]);
+                                if (y > numResult && y < numResult2) {
+                                    list.add(hi);
+                                    break;
+                                    //System.out.println(high[x]);
+                                }
+
                             }
 
                         }
-
+                        count++;
                     }
-                    count++;
-                }
 
-                // System.out.println("Hello");
-                for (String x : list) {
-                    csvOutput.write(x);
-                    csvOutput.newLine();
-                }
+                    // System.out.println("Hello");
+                    for (String x : list) {
+                        csvOutput.write(x);
+                        csvOutput.newLine();
+                    }
 
-                csvFileReader.close();
-                csvOutput.close();
-                
-                JOptionPane.showMessageDialog(null,
-                        "Bye everybody. Thanks for"
-                                + " your business",
-                        "Farewell box",
-                        JOptionPane.PLAIN_MESSAGE);
+                    csvFileReader.close();
+                    csvOutput.close();
+
+                    JOptionPane.showMessageDialog(null,
+                            "Bye everybody. Thanks for"
+                            + " your business",
+                            "Farewell box",
+                            JOptionPane.PLAIN_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(null,
+                            "Wrong letter, sir or madam",
+                            "WE ARE OUT",
+                            JOptionPane.ERROR_MESSAGE);
+                }
             }
 
         } catch (NumberFormatException e) {
             System.out.print(e.getMessage());
-
         }
     }
 }
-  
