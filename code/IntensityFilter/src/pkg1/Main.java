@@ -1,3 +1,7 @@
+//Form 1: Gene #,species/organism #,intensity range, # intensity points
+//Form 2: 2-Filter (prioritze: Superkingom, Organism/Species, gene name, gene category),
+//arbitrary number
+//-tell user to separate each column
 package pkg1;
 import java.io.File;
 import java.io.BufferedReader;
@@ -36,86 +40,175 @@ private static String source;
         frame.setDefaultCloseOperation( frame.EXIT_ON_CLOSE );
         frame.setVisible(true);
 
-        JTextField minField = new JTextField(5);
-        JTextField maxField = new JTextField(5);
-        JTextField n = new JTextField(5);
-        JTextField minOrganismEntries = new JTextField(5);
-
+        JTextField minGeneNames = new JTextField(5);
+        JTextField minOrganisms = new JTextField(5);
+        JTextField minPoints = new JTextField(5);
+        
         JPanel myPanel = new JPanel();
         myPanel.add(new JLabel("Remove records with gene names appearing < this many times:"));
-        myPanel.add(minOrganismEntries);
-        int mino=0;
+        myPanel.add(minGeneNames);
+        myPanel.add(new JLabel("Remove records with organism names appearing < this many times:"));
+        myPanel.add(minOrganisms);
+        myPanel.add(new JLabel("Remove records with < this many data points:"));
+        myPanel.add(minPoints);
+        int ming=0; //min # gene names
+        int mino=0; //min # organism names
+        int minp=0; //min # data points per record
         int result = JOptionPane.showConfirmDialog(null, myPanel, 
                  "Enter parameters, then drag a .csv source file to the other window.", JOptionPane.OK_CANCEL_OPTION);
         if (result == JOptionPane.OK_OPTION) {
-            String minos=minOrganismEntries.getText();
-            while((!isInteger(minos))&&result==JOptionPane.OK_OPTION){
+            String mings=minGeneNames.getText();
+            String minos=minOrganisms.getText();
+            String minps=minPoints.getText();
+            while((!isInteger(mings)||!isInteger(minos)||!isInteger(minps))&&result==JOptionPane.OK_OPTION){
                 result = JOptionPane.showConfirmDialog(null, myPanel, 
                  "Enter parameters, then drag a .csv source file to the other window.", JOptionPane.OK_CANCEL_OPTION);
                 if (result == JOptionPane.OK_OPTION) {
-                    minos=minOrganismEntries.getText();
+                    mings=minGeneNames.getText();
+                    minos=minOrganisms.getText();
+                    minps=minPoints.getText();
                 }
                 else System.exit(0);
             }
             if (result == JOptionPane.OK_OPTION) {
+                ming=Integer.parseInt(mings);
                 mino=Integer.parseInt(minos);
+                minp=Integer.parseInt(minps);
             }
             else System.exit(0);
         }
         else System.exit(0);
-        
         while(source.equals("a")) //while source file has not been set (default is "a")
-            System.out.println("");
+            System.out.print("");
         BufferedReader s = new BufferedReader(new FileReader(new File(source)));
-        BufferedWriter w = new BufferedWriter(new FileWriter(new File("CadaverOutput.csv")));
-        String line[];
-        HashMap<String,Integer> h = new HashMap<>();
-        while(s.ready()){
-            line = s.readLine().split(",");
-            String geneName=line[1];
-            if(h.containsKey(geneName))
-                h.replace(geneName, h.get(geneName)+1);
-            else
-                h.put(geneName, 1);
+        String line[]=new String[19];
+        for(int i=0;i<19;i++)
+            line[i]="";
+        HashMap<String,Integer> geneNameHash = new HashMap<>();
+        HashMap<String,Integer> OrganismHash = new HashMap<>();
+	HashMap<Integer,int[]> dph = new HashMap<>();
+        /*dph identifies where record indexes begin and end. Each record
+        consists of 2 numbers:
+        1. The record starting index
+        2. The record ending index*/
+        if(s.ready()){
+            String[] read = s.readLine().split(",");
+            for(int i=0;i<read.length;i++)
+                line[i]=read[i];
+            int c1=0;
+            int i=0;
+            while(c1<line.length){
+                int currentIndex=c1;
+                while(c1<line.length-1&&!line[c1+1].substring(0,1).equals("#")){
+                    c1++;
+                }
+                dph.put(i, new int[]{currentIndex,c1});
+                i++;
+                c1++;
+            }
         }
-        s.close(); w.close();
+        while(s.ready()){
+            String[] read = s.readLine().split(",");
+            int i=0;
+            int count=0;
+            for(i=0;i<read.length;i++){
+                if(read[i].length()>1&&read[i].substring(0,1).equals("\"")){
+                    String read2="";
+                    while(!read[i].substring(read[i].length()-1,read[i].length()).equals("\"")){
+                        read2+=read[i]+",";
+                        i++; count++;
+                    }
+                    read2+=read[i];
+                    line[i-count]=read2;
+                }
+                else
+                    line[i-count]=read[i];
+            }
+            while(i<line.length){
+                line[i-count]="";
+                i++;
+            }
+            String geneName=line[1];
+            String organism=line[5];
+            if(geneNameHash.containsKey(geneName))
+                geneNameHash.replace(geneName, geneNameHash.get(geneName)+1);
+            else
+                geneNameHash.put(geneName, 1);
+            if(OrganismHash.containsKey(organism))
+                OrganismHash.replace(organism, OrganismHash.get(organism)+1);
+            else
+                OrganismHash.put(organism, 1);
+        }
+        s.close();
         
         s = new BufferedReader(new FileReader(new File(source)));
-        w = new BufferedWriter(new FileWriter(new File("CadaverOutput.csv")));
-        int c = 7;
+        BufferedWriter w = new BufferedWriter(new FileWriter(new File("output.csv")));
         line = s.readLine().split(",");
-        for(int i=0;i<line.length;i++)
+        for(int i=0;i<line.length;i++)  /*header start*/
         {
             w.write(line[i]);
             if(i<line.length-1)
                 w.write(",");
         }
-        w.newLine();
+        w.newLine();                    /*header end*/
         while(s.ready()){
-            line = s.readLine().split(",");
-            if(h.get(line[1])>=mino)
+            String[] read = s.readLine().split(",");
+            int i=0;
+            int count=0;
+            for(i=0;i<read.length;i++){
+                if(read[i].length()>1&&read[i].substring(0,1).equals("\"")){
+                    String read2="";
+                    while(!read[i].substring(read[i].length()-1,read[i].length()).equals("\"")){
+                        read2+=read[i]+",";
+                        i++; count++;
+                    }
+                    read2+=read[i];
+                    line[i-count]=read2;
+                }
+                else
+                    line[i-count]=read[i];
+            }
+            while(i<line.length){
+                line[i-count]="";
+                i++;
+            }
+//            for(String a:line)
+//                System.out.print(" |"+a+"| ");
+//            System.out.println(line.length);
+            if(geneNameHash.get(line[1])>=ming&&OrganismHash.get(line[5])>=mino)
             {
-                int i=0;
-                    for(i=0;i<line.length;i++){
-                            String l=line[i];
-                            if(isDouble(l)){
-                                Long rounded = Math.round(Double.parseDouble(line[i]));
-                                w.write(rounded.toString());
-                            }
-                            else
-                                w.write(l);
-                            if(i<line.length-1)
-                                w.write(",");
+                int pos;
+                boolean nonempty=false;
+                for(pos=0;pos<dph.get(0)[0];pos++){ /*Genbank ID...*/
+                    String l=line[pos];
+                    w.write(l+",");
+                }                                   /*...Lineage*/
+                for(int it=1;it<dph.size();it++){
+                    int index=dph.get(it)[0];
+                    int nonEmptyCount=0;
+                    while(index<dph.get(it)[1]){
+                        if(isInteger(line[index])||isDouble(line[index]))
+                            nonEmptyCount++;
+                        index++;
                     }
-                    while(i<19){
-                        w.write(",");
-                        i++;
+                    if(nonEmptyCount>=minp){
+                        nonempty=true;
+                        while(pos<dph.get(it)[1]){  //Includes empty data points.
+                            w.write(line[pos]+",");
+                            pos++;
+                        }
+                        while(pos<line.length){
+                            w.write(",");
+                            pos++;
+                        }
                     }
+                }
+                if(nonempty)
                     w.newLine();
             }
         }
         s.close(); w.close();
-        JOptionPane.showMessageDialog(myPanel, "Finished. Results stored in "+System.getProperty("user.dir")+"\\CadaverOutput.csv.");
+        JOptionPane.showMessageDialog(myPanel, "Finished. Results stored in "+System.getProperty("user.dir")+"\\output.csv.");
         System.exit(0);
     }
     
