@@ -81,9 +81,8 @@ private static String source;
         while(source.equals("a")) //while source file has not been set (default is "a")
             System.out.print("");
         BufferedReader s = new BufferedReader(new FileReader(new File(source)));
-        String line[]=new String[19];
-        for(int i=0;i<19;i++)
-            line[i]="";
+        String line[];
+        int llength=0;
         HashMap<String,Integer> geneNameHash = new HashMap<>();
         HashMap<String,Integer> OrganismHash = new HashMap<>();
 	HashMap<Integer,int[]> dph = new HashMap<>();
@@ -93,6 +92,8 @@ private static String source;
         2. The record ending index*/
         if(s.ready()){
             String[] read = s.readLine().split(",");
+            llength=read.length;
+            line=new String[llength];
             for(int i=0;i<read.length;i++)
                 line[i]=read[i];
             int c1=0;
@@ -107,6 +108,7 @@ private static String source;
                 c1++;
             }
         }
+        line=new String[llength];
         while(s.ready()){
             String[] read = s.readLine().split(",");
             int i=0;
@@ -177,12 +179,9 @@ private static String source;
 //            System.out.println(line.length);
             if(geneNameHash.get(line[1])>=ming&&OrganismHash.get(line[5])>=mino)
             {
-                int pos;
-                boolean nonempty=false;
-                for(pos=0;pos<=dph.get(0)[0];pos++){ /*Genbank ID...*/
-                    String l=line[pos];
-                    w.write(l+",");
-                }                                   /*...Lineage*/
+                int pos=0;
+                boolean nonEmpty=false;
+                String toWrite="";
                 for(int it=1;it<dph.size();it++){
                     int index=dph.get(it)[0];
                     int nonEmptyCount=0;
@@ -192,19 +191,16 @@ private static String source;
                         index++;
                     }
                     if(nonEmptyCount>=minp){
-                        nonempty=true;
+                        nonEmpty=true;
                         while(pos<=dph.get(it)[1]){  //Includes empty data points.
-                            w.write(line[pos]+",");
+                            toWrite+=line[pos]+",";
                             pos++;
                         }
                     }
                 }
-                while(pos<line.length){
-                            w.write(",");
-                            pos++;
-                        }
-               // if(nonempty)
-                    w.newLine();
+                if(nonEmpty)
+                    w.write(toWrite.substring(0,toWrite.length()-1));
+                w.newLine();
             }
         }
         s.close(); w.close();
