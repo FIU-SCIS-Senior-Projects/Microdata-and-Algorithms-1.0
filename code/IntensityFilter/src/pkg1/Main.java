@@ -179,31 +179,31 @@ private static String source;
             {
                 int pos;
                 boolean nonempty=false;
-                for(pos=0;pos<dph.get(0)[0];pos++){ /*Genbank ID...*/
+                for(pos=0;pos<=dph.get(0)[0];pos++){ /*Genbank ID...*/
                     String l=line[pos];
                     w.write(l+",");
                 }                                   /*...Lineage*/
                 for(int it=1;it<dph.size();it++){
                     int index=dph.get(it)[0];
                     int nonEmptyCount=0;
-                    while(index<dph.get(it)[1]){
+                    while(index<=dph.get(it)[1]){
                         if(isInteger(line[index])||isDouble(line[index]))
                             nonEmptyCount++;
                         index++;
                     }
                     if(nonEmptyCount>=minp){
                         nonempty=true;
-                        while(pos<dph.get(it)[1]){  //Includes empty data points.
+                        while(pos<=dph.get(it)[1]){  //Includes empty data points.
                             w.write(line[pos]+",");
-                            pos++;
-                        }
-                        while(pos<line.length){
-                            w.write(",");
                             pos++;
                         }
                     }
                 }
-                if(nonempty)
+                while(pos<line.length){
+                            w.write(",");
+                            pos++;
+                        }
+               // if(nonempty)
                     w.newLine();
             }
         }
