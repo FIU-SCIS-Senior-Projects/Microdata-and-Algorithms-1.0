@@ -174,12 +174,9 @@ private static String source;
                 line[i-count]="";
                 i++;
             }
-//            for(String a:line)
-//                System.out.print(" |"+a+"| ");
-//            System.out.println(line.length);
             if(geneNameHash.get(line[1])>=ming&&OrganismHash.get(line[5])>=mino)
             {
-                int pos=0;
+                int pos=dph.get(1)[0];
                 boolean nonEmpty=false;
                 String toWrite="";
                 for(int it=1;it<dph.size();it++){
@@ -197,10 +194,15 @@ private static String source;
                             pos++;
                         }
                     }
+                    while(pos<=dph.get(it)[1])
+                        pos++;
                 }
-                if(nonEmpty)
+                if(nonEmpty){
+                    for(int a=0;a<dph.get(1)[0];a++)
+                        w.write(line[a]+",");
                     w.write(toWrite.substring(0,toWrite.length()-1));
-                w.newLine();
+                    w.newLine();
+                }
             }
         }
         s.close(); w.close();
