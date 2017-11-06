@@ -1,7 +1,7 @@
 //Form 1: Gene #,species/organism #,intensity range, # intensity points
 //Form 2: 2-Filter (prioritze: Superkingom, Organism/Species, gene name, gene category),
 //arbitrary number
-//-tell user to separate each column
+//-tell user to separate each record
 package pkg1;
 import java.io.File;
 import java.io.BufferedReader;
@@ -13,10 +13,6 @@ import java.util.HashMap;
 
 public class Main {
 private static String source;
-    public Main() {
-        
-    }
-    
     public static void main(String[] args) throws Exception{
         javax.swing.JFrame frame = new javax.swing.JFrame("Drag and drop .csv source file here");
         final javax.swing.JTextArea text = new javax.swing.JTextArea();
@@ -40,37 +36,52 @@ private static String source;
         frame.setDefaultCloseOperation( frame.EXIT_ON_CLOSE );
         frame.setVisible(true);
 
+        JTextField minField = new JTextField(5);
+        JTextField maxField = new JTextField(5);
+        JTextField minPoints = new JTextField(5);
         JTextField minGeneNames = new JTextField(5);
         JTextField minOrganisms = new JTextField(5);
-        JTextField minPoints = new JTextField(5);
         
         JPanel myPanel = new JPanel();
+        myPanel.add(new JLabel("Minimum intensity:"));
+        myPanel.add(minField);
+        myPanel.add(Box.createHorizontalStrut(15)); // a spacer
+        myPanel.add(new JLabel("Maximum intensity:"));
+        myPanel.add(maxField);
+        myPanel.add(new JLabel("Remove records with < this many data points:"));
+        myPanel.add(minPoints);
         myPanel.add(new JLabel("Remove records with gene names appearing < this many times:"));
         myPanel.add(minGeneNames);
         myPanel.add(new JLabel("Remove records with organism names appearing < this many times:"));
         myPanel.add(minOrganisms);
-        myPanel.add(new JLabel("Remove records with < this many data points:"));
-        myPanel.add(minPoints);
+        int min=-1; //intensity range minimum
+        int max=-1; //intensity range maximum
         int ming=0; //min # gene names
         int mino=0; //min # organism names
         int minp=0; //min # data points per record
         int result = JOptionPane.showConfirmDialog(null, myPanel, 
                  "Enter parameters, then drag a .csv source file to the other window.", JOptionPane.OK_CANCEL_OPTION);
-        if (result == JOptionPane.OK_OPTION) {
+        if (result == JOptionPane.OK_OPTION){
+            String mi=minField.getText();
+            String ma=maxField.getText();
             String mings=minGeneNames.getText();
             String minos=minOrganisms.getText();
             String minps=minPoints.getText();
-            while((!isInteger(mings)||!isInteger(minos)||!isInteger(minps))&&result==JOptionPane.OK_OPTION){
+            while((!isInteger(mi)||!isInteger(ma)||!isInteger(mings)||!isInteger(minos)||!isInteger(minps))&&result==JOptionPane.OK_OPTION){
                 result = JOptionPane.showConfirmDialog(null, myPanel, 
                  "Enter parameters, then drag a .csv source file to the other window.", JOptionPane.OK_CANCEL_OPTION);
-                if (result == JOptionPane.OK_OPTION) {
+                if (result == JOptionPane.OK_OPTION){
+                    mi=minField.getText();
+                    ma=maxField.getText();
                     mings=minGeneNames.getText();
                     minos=minOrganisms.getText();
                     minps=minPoints.getText();
                 }
                 else System.exit(0);
             }
-            if (result == JOptionPane.OK_OPTION) {
+            if (result == JOptionPane.OK_OPTION){
+                min=Integer.parseInt(mi);
+                max=Integer.parseInt(ma);
                 ming=Integer.parseInt(mings);
                 mino=Integer.parseInt(minos);
                 minp=Integer.parseInt(minps);
@@ -94,8 +105,7 @@ private static String source;
             String[] read = s.readLine().split(",");
             llength=read.length;
             line=new String[llength];
-            for(int i=0;i<read.length;i++)
-                line[i]=read[i];
+            System.arraycopy(read, 0, line, 0, read.length);
             int c1=0;
             int i=0;
             while(c1<line.length){
@@ -183,14 +193,17 @@ private static String source;
                     int index=dph.get(it)[0];
                     int nonEmptyCount=0;
                     while(index<=dph.get(it)[1]){
-                        if(isInteger(line[index])||isDouble(line[index]))
+                        if(isDouble(line[index]))
                             nonEmptyCount++;
                         index++;
                     }
                     if(nonEmptyCount>=minp){
                         nonEmpty=true;
                         while(pos<=dph.get(it)[1]){  //Includes empty data points.
-                            toWrite+=line[pos]+",";
+                            if(isDouble(line[pos])&&Double.parseDouble(line[pos])>=min&&Double.parseDouble(line[pos])<=max)
+                                toWrite+=line[pos]+",";
+                            else
+                                toWrite+=",";
                             pos++;
                         }
                     }
