@@ -3,6 +3,7 @@
 //arbitrary number
 //-tell user to separate each record
 package pkg1;
+import java.awt.GridLayout;
 import java.io.File;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -43,9 +44,9 @@ private static String source;
         JTextField minOrganisms = new JTextField(5);
         
         JPanel myPanel = new JPanel();
+        myPanel.setLayout(new GridLayout(5,1));
         myPanel.add(new JLabel("Minimum intensity:"));
         myPanel.add(minField);
-        myPanel.add(Box.createHorizontalStrut(15)); // a spacer
         myPanel.add(new JLabel("Maximum intensity:"));
         myPanel.add(maxField);
         myPanel.add(new JLabel("Remove records with < this many data points:"));
