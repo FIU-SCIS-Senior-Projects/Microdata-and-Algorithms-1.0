@@ -66,7 +66,7 @@ private static String source;
             }
         }
         JTextField[] columns=new JTextField[dph.get(0)[1]+1];
-        String[] columnNames=new String[columns.length];
+        String[] columnQuery=new String[columns.length];
         for(int a=0; a<columns.length; a++){
             columns[a]=new JTextField(5);
         }
@@ -80,7 +80,7 @@ private static String source;
         JPanel myPanel = new JPanel();
         myPanel.setLayout(new GridLayout(12,1));
         for(int a=0; a<columns.length; a++){
-            myPanel.add(new JLabel("Column "+(a+1)+" Search (Insert a comma between each search term):"));
+            myPanel.add(new JLabel("Column "+(a+1)+" Search (Insert a tilde (~) between each search term):"));
             myPanel.add(columns[a]);
         }
         
@@ -103,7 +103,7 @@ private static String source;
                  "Enter parameters, then drag a .csv source file to the other window.", JOptionPane.OK_CANCEL_OPTION);
         if (result == JOptionPane.OK_OPTION){
             for(int a=0; a<columns.length; a++)
-                columnNames[a]=columns[a].getText();
+                columnQuery[a]=columns[a].getText();
             
             String mi=minField.getText();
             String ma=maxField.getText();
@@ -115,7 +115,7 @@ private static String source;
                  "Enter parameters, then drag a .csv source file to the other window.", JOptionPane.OK_CANCEL_OPTION);
                 if (result == JOptionPane.OK_OPTION){
                     for(int a=0; a<columns.length; a++)
-                        columnNames[a]=columns[a].getText();
+                        columnQuery[a]=columns[a].getText();
                     
                     mi=minField.getText();
                     ma=maxField.getText();
@@ -127,7 +127,7 @@ private static String source;
             }
             if (result == JOptionPane.OK_OPTION){
                 for(int a=0; a<columns.length; a++)
-                    columnNames[a]=columns[a].getText();
+                    columnQuery[a]=columns[a].getText();
                     
                 min=Integer.parseInt(mi);
                 max=Integer.parseInt(ma);
@@ -205,13 +205,13 @@ private static String source;
                 line[i-count]="";
                 i++;
             }
-            boolean[] in = new boolean[columnNames.length];
+            boolean[] in = new boolean[columnQuery.length];
             i=0;
-            while(i<columnNames.length){
-                String[] a = columnNames[i].split(",");
+            while(i<columnQuery.length){
+                String[] a = columnQuery[i].split("~");
                 int i2=0;
                 while(!in[i]&&i2<a.length){
-                    if(read[i].contains(a[i2]))
+                    if(line[i].contains(a[i2]))
                         in[i]=true;
                     i2++;
                 }
