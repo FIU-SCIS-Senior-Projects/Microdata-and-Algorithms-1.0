@@ -70,19 +70,30 @@ private static String source;
         for(int a=0; a<columns.length; a++){
             columns[a]=new JTextField(5);
         }
-
+        JTextField separate = new JTextField(5);
+        JPanel myPanel = new JPanel();
+        myPanel.add(new JLabel("Enter search term separator:"));
+        myPanel.add(separate);
+        String separator="";
+        int result = JOptionPane.showConfirmDialog(null, myPanel, 
+                 "Enter search term separator:", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION)
+            separator = separate.getText();
+        else
+            System.exit(0);
+        
+        myPanel = new JPanel();
+        myPanel.setLayout(new GridLayout(12,1));
+        for(int a=0; a<columns.length; a++){
+            myPanel.add(new JLabel("Column "+(a+1)+" Search (Insert \""+separator+"\" between each search term):"));
+            myPanel.add(columns[a]);
+        }
+        
         JTextField minField = new JTextField(5);
         JTextField maxField = new JTextField(5);
         JTextField minPoints = new JTextField(5);
         JTextField minGeneNames = new JTextField(5);
         JTextField minOrganisms = new JTextField(5);
-        
-        JPanel myPanel = new JPanel();
-        myPanel.setLayout(new GridLayout(12,1));
-        for(int a=0; a<columns.length; a++){
-            myPanel.add(new JLabel("Column "+(a+1)+" Search (Insert a tilde (~) between each search term):"));
-            myPanel.add(columns[a]);
-        }
         
         myPanel.add(new JLabel("Minimum intensity:"));
         myPanel.add(minField);
@@ -99,7 +110,7 @@ private static String source;
         int ming=0; //min # gene names
         int mino=0; //min # organism names
         int minp=0; //min # data points per record
-        int result = JOptionPane.showConfirmDialog(null, myPanel, 
+        result = JOptionPane.showConfirmDialog(null, myPanel, 
                  "Enter parameters, then drag a .csv source file to the other window.", JOptionPane.OK_CANCEL_OPTION);
         if (result == JOptionPane.OK_OPTION){
             for(int a=0; a<columns.length; a++)
@@ -208,7 +219,7 @@ private static String source;
             boolean[] in = new boolean[columnQuery.length];
             i=0;
             while(i<columnQuery.length){
-                String[] a = columnQuery[i].split("~");
+                String[] a = columnQuery[i].split(separator);
                 int i2=0;
                 while(!in[i]&&i2<a.length){
                     if(line[i].contains(a[i2]))
