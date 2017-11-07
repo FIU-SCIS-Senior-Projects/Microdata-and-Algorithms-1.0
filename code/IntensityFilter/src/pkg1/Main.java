@@ -24,72 +24,18 @@ private static String source;
         new FileDrop( System.out, text, new FileDrop.Listener()
         {   public void filesDropped( java.io.File[] files )
             {     
-                for( int i = 0; i < files.length; i++ )
-                { try {
-                        text.append( files[i].getCanonicalPath() + "\n" );
-                        source=files[i].getCanonicalPath();
-                }
-                catch( java.io.IOException e ) {}
-                }
+            for (File file : files) {
+                try {
+                    text.append(file.getCanonicalPath() + "\n");
+                    source = file.getCanonicalPath();
+                }catch( java.io.IOException e ) {}
+            }
             }   // end filesDropped
         }); // end FileDrop.Listener
         frame.setBounds( 100, 100, 300, 400 );
         frame.setDefaultCloseOperation( frame.EXIT_ON_CLOSE );
         frame.setVisible(true);
-
-        JTextField minField = new JTextField(5);
-        JTextField maxField = new JTextField(5);
-        JTextField minPoints = new JTextField(5);
-        JTextField minGeneNames = new JTextField(5);
-        JTextField minOrganisms = new JTextField(5);
         
-        JPanel myPanel = new JPanel();
-        myPanel.setLayout(new GridLayout(5,1));
-        myPanel.add(new JLabel("Minimum intensity:"));
-        myPanel.add(minField);
-        myPanel.add(new JLabel("Maximum intensity:"));
-        myPanel.add(maxField);
-        myPanel.add(new JLabel("Remove records with < this many data points:"));
-        myPanel.add(minPoints);
-        myPanel.add(new JLabel("Remove records with gene names appearing < this many times:"));
-        myPanel.add(minGeneNames);
-        myPanel.add(new JLabel("Remove records with organism names appearing < this many times:"));
-        myPanel.add(minOrganisms);
-        int min=-1; //intensity range minimum
-        int max=-1; //intensity range maximum
-        int ming=0; //min # gene names
-        int mino=0; //min # organism names
-        int minp=0; //min # data points per record
-        int result = JOptionPane.showConfirmDialog(null, myPanel, 
-                 "Enter parameters, then drag a .csv source file to the other window.", JOptionPane.OK_CANCEL_OPTION);
-        if (result == JOptionPane.OK_OPTION){
-            String mi=minField.getText();
-            String ma=maxField.getText();
-            String mings=minGeneNames.getText();
-            String minos=minOrganisms.getText();
-            String minps=minPoints.getText();
-            while((!isInteger(mi)||!isInteger(ma)||!isInteger(mings)||!isInteger(minos)||!isInteger(minps))&&result==JOptionPane.OK_OPTION){
-                result = JOptionPane.showConfirmDialog(null, myPanel, 
-                 "Enter parameters, then drag a .csv source file to the other window.", JOptionPane.OK_CANCEL_OPTION);
-                if (result == JOptionPane.OK_OPTION){
-                    mi=minField.getText();
-                    ma=maxField.getText();
-                    mings=minGeneNames.getText();
-                    minos=minOrganisms.getText();
-                    minps=minPoints.getText();
-                }
-                else System.exit(0);
-            }
-            if (result == JOptionPane.OK_OPTION){
-                min=Integer.parseInt(mi);
-                max=Integer.parseInt(ma);
-                ming=Integer.parseInt(mings);
-                mino=Integer.parseInt(minos);
-                minp=Integer.parseInt(minps);
-            }
-            else System.exit(0);
-        }
-        else System.exit(0);
         while(source.equals("a")) //while source file has not been set (default is "a")
             System.out.print("");
         BufferedReader s = new BufferedReader(new FileReader(new File(source)));
@@ -119,6 +65,80 @@ private static String source;
                 c1++;
             }
         }
+        JTextField[] columns=new JTextField[dph.get(0)[1]+1];
+        String[] columnNames=new String[columns.length];
+        for(int a=0; a<columns.length; a++){
+            columns[a]=new JTextField(5);
+        }
+
+        JTextField minField = new JTextField(5);
+        JTextField maxField = new JTextField(5);
+        JTextField minPoints = new JTextField(5);
+        JTextField minGeneNames = new JTextField(5);
+        JTextField minOrganisms = new JTextField(5);
+        
+        JPanel myPanel = new JPanel();
+        myPanel.setLayout(new GridLayout(12,1));
+        for(int a=0; a<columns.length; a++){
+            myPanel.add(new JLabel("Column "+(a+1)+" Search (Insert a comma between each search term):"));
+            myPanel.add(columns[a]);
+        }
+        
+        myPanel.add(new JLabel("Minimum intensity:"));
+        myPanel.add(minField);
+        myPanel.add(new JLabel("Maximum intensity:"));
+        myPanel.add(maxField);
+        myPanel.add(new JLabel("Remove records with < this many data points:"));
+        myPanel.add(minPoints);
+        myPanel.add(new JLabel("Remove records with gene names appearing < this many times:"));
+        myPanel.add(minGeneNames);
+        myPanel.add(new JLabel("Remove records with organism names appearing < this many times:"));
+        myPanel.add(minOrganisms);
+        int min=-1; //intensity range minimum
+        int max=-1; //intensity range maximum
+        int ming=0; //min # gene names
+        int mino=0; //min # organism names
+        int minp=0; //min # data points per record
+        int result = JOptionPane.showConfirmDialog(null, myPanel, 
+                 "Enter parameters, then drag a .csv source file to the other window.", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION){
+            for(int a=0; a<columns.length; a++)
+                columnNames[a]=columns[a].getText();
+            
+            String mi=minField.getText();
+            String ma=maxField.getText();
+            String mings=minGeneNames.getText();
+            String minos=minOrganisms.getText();
+            String minps=minPoints.getText();
+            while((!isInteger(mi)||!isInteger(ma)||!isInteger(mings)||!isInteger(minos)||!isInteger(minps))&&result==JOptionPane.OK_OPTION){
+                result = JOptionPane.showConfirmDialog(null, myPanel, 
+                 "Enter parameters, then drag a .csv source file to the other window.", JOptionPane.OK_CANCEL_OPTION);
+                if (result == JOptionPane.OK_OPTION){
+                    for(int a=0; a<columns.length; a++)
+                        columnNames[a]=columns[a].getText();
+                    
+                    mi=minField.getText();
+                    ma=maxField.getText();
+                    mings=minGeneNames.getText();
+                    minos=minOrganisms.getText();
+                    minps=minPoints.getText();
+                }
+                else System.exit(0);
+            }
+            if (result == JOptionPane.OK_OPTION){
+                for(int a=0; a<columns.length; a++)
+                    columnNames[a]=columns[a].getText();
+                    
+                min=Integer.parseInt(mi);
+                max=Integer.parseInt(ma);
+                ming=Integer.parseInt(mings);
+                mino=Integer.parseInt(minos);
+                minp=Integer.parseInt(minps);
+            }
+            else System.exit(0);
+        }
+        else System.exit(0);
+        
         line=new String[llength];
         while(s.ready()){
             String[] read = s.readLine().split(",");
@@ -185,7 +205,26 @@ private static String source;
                 line[i-count]="";
                 i++;
             }
-            if(geneNameHash.get(line[1])>=ming&&OrganismHash.get(line[5])>=mino)
+            boolean[] in = new boolean[columnNames.length];
+            i=0;
+            while(i<columnNames.length){
+                String[] a = columnNames[i].split(",");
+                int i2=0;
+                while(!in[i]&&i2<a.length){
+                    if(read[i].contains(a[i2]))
+                        in[i]=true;
+                    i2++;
+                }
+                i++;
+            }
+            boolean all=true;
+            i=0;
+            while(all&&i<in.length){
+                if(!in[i])
+                    all=false;
+                i++;
+            }
+            if(all&&geneNameHash.get(line[1])>=ming&&OrganismHash.get(line[5])>=mino)
             {
                 int pos=dph.get(1)[0];
                 boolean nonEmpty=false;
