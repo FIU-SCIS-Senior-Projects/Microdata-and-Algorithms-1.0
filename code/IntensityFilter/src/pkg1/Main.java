@@ -27,7 +27,7 @@ private static String source;
             for (File file : files) {
                 try {
                     text.append(file.getCanonicalPath() + "\n");
-                    source = file.getCanonicalPath();
+                    source = file.getCanonicalPath().toUpperCase();
                 }catch( java.io.IOException e ) {}
             }
             }   // end filesDropped
@@ -74,18 +74,18 @@ private static String source;
         JPanel myPanel = new JPanel();
         myPanel.add(new JLabel("Enter search term separator:"));
         myPanel.add(separate);
-        String separator="";
+        String searchSeparator="";
         int result = JOptionPane.showConfirmDialog(null, myPanel, 
                  "Enter search term separator:", JOptionPane.OK_CANCEL_OPTION);
         if (result == JOptionPane.OK_OPTION)
-            separator = separate.getText();
+            searchSeparator = separate.getText();
         else
             System.exit(0);
         
         myPanel = new JPanel();
         myPanel.setLayout(new GridLayout(12,1));
         for(int a=0; a<columns.length; a++){
-            myPanel.add(new JLabel("Column "+(a+1)+" Search (Insert \""+separator+"\" between each search term):"));
+            myPanel.add(new JLabel("Column "+(a+1)+" Search (Insert \""+searchSeparator+"\" between each search term):"));
             myPanel.add(columns[a]);
         }
         
@@ -105,13 +105,13 @@ private static String source;
         myPanel.add(minGeneNames);
         myPanel.add(new JLabel("Remove records with organism names appearing < this many times:"));
         myPanel.add(minOrganisms);
-        int min=-1; //intensity range minimum
-        int max=-1; //intensity range maximum
+        double min=-1; //intensity range minimum
+        double max=-1; //intensity range maximum
         int ming=0; //min # gene names
         int mino=0; //min # organism names
         int minp=0; //min # data points per record
         result = JOptionPane.showConfirmDialog(null, myPanel, 
-                 "Enter parameters, then drag a .csv source file to the other window.", JOptionPane.OK_CANCEL_OPTION);
+                 "Enter search parameters", JOptionPane.OK_CANCEL_OPTION);
         if (result == JOptionPane.OK_OPTION){
             for(int a=0; a<columns.length; a++)
                 columnQuery[a]=columns[a].getText();
@@ -121,9 +121,9 @@ private static String source;
             String mings=minGeneNames.getText();
             String minos=minOrganisms.getText();
             String minps=minPoints.getText();
-            while((!isInteger(mi)||!isInteger(ma)||!isInteger(mings)||!isInteger(minos)||!isInteger(minps))&&result==JOptionPane.OK_OPTION){
+            while((!isDouble(mi)||!isDouble(ma)||!isInteger(mings)||!isInteger(minos)||!isInteger(minps))&&result==JOptionPane.OK_OPTION){
                 result = JOptionPane.showConfirmDialog(null, myPanel, 
-                 "Enter parameters, then drag a .csv source file to the other window.", JOptionPane.OK_CANCEL_OPTION);
+                 "Enter search parameters", JOptionPane.OK_CANCEL_OPTION);
                 if (result == JOptionPane.OK_OPTION){
                     for(int a=0; a<columns.length; a++)
                         columnQuery[a]=columns[a].getText();
@@ -140,8 +140,8 @@ private static String source;
                 for(int a=0; a<columns.length; a++)
                     columnQuery[a]=columns[a].getText();
                     
-                min=Integer.parseInt(mi);
-                max=Integer.parseInt(ma);
+                min=Double.parseDouble(mi);
+                max=Double.parseDouble(ma);
                 ming=Integer.parseInt(mings);
                 mino=Integer.parseInt(minos);
                 minp=Integer.parseInt(minps);
@@ -150,6 +150,7 @@ private static String source;
         }
         else System.exit(0);
         
+        long start = System.currentTimeMillis();
         line=new String[llength];
         while(s.ready()){
             String[] read = s.readLine().split(",");
@@ -219,47 +220,73 @@ private static String source;
             boolean[] in = new boolean[columnQuery.length];
             i=0;
             while(i<columnQuery.length){
-                String[] a = columnQuery[i].split(separator);
+                String[] a = columnQuery[i].split(searchSeparator);
                 int i2=0;
                 while(!in[i]&&i2<a.length){
-                    if(line[i].contains(a[i2]))
+                    if(containsIgnoreCase(line[i],(a[i2])))
                         in[i]=true;
                     i2++;
                 }
                 i++;
             }
-            boolean all=true;
+            boolean allSearchTermsMatch=true;
             i=0;
-            while(all&&i<in.length){
+            while(allSearchTermsMatch&&i<in.length){
                 if(!in[i])
-                    all=false;
+                    allSearchTermsMatch=false;
                 i++;
             }
-            if(all&&geneNameHash.get(line[1])>=ming&&OrganismHash.get(line[5])>=mino)
+            if(allSearchTermsMatch&&geneNameHash.get(line[1])>=ming&&OrganismHash.get(line[5])>=mino)
             {
-                int pos=dph.get(1)[0];
+                /*nonEmpty is used to check whether at least 1 sub-record (such as a cadaver)
+                contains at least 1 point matching the criteria entered by the user and, if so, the entire line is written.*/
                 boolean nonEmpty=false;
                 String toWrite="";
                 for(int it=1;it<dph.size();it++){
                     int index=dph.get(it)[0];
                     int nonEmptyCount=0;
+                    String li; double d;
                     while(index<=dph.get(it)[1]){
-                        if(isDouble(line[index]))
-                            nonEmptyCount++;
+                        li=line[index];
+                        if(isDouble(li)){
+                            d=Double.parseDouble(li);
+                            if(d>=min&&d<=max)
+                                nonEmptyCount++;
+                        }
                         index++;
                     }
+                    index=dph.get(it)[0];
                     if(nonEmptyCount>=minp){
                         nonEmpty=true;
-                        while(pos<=dph.get(it)[1]){  //Includes empty data points.
-                            if(isDouble(line[pos])&&Double.parseDouble(line[pos])>=min&&Double.parseDouble(line[pos])<=max)
-                                toWrite+=line[pos]+",";
+                        while(index<=dph.get(it)[1]){
+                            li=line[index];
+                            if(isDouble(li)){
+                                d=Double.parseDouble(li);
+                                if(d>=min&&d<=max)
+                                    toWrite+=line[index]+",";
+                                else
+                                    toWrite+="*,";
+                            }
                             else
                                 toWrite+=",";
-                            pos++;
+                            index++;
                         }
                     }
-                    while(pos<=dph.get(it)[1])
-                        pos++;
+                    else{
+                        while(index<=dph.get(it)[1]){
+                            li=line[index];
+                            if(isDouble(li)){
+                                d=Double.parseDouble(li);
+                                if(d>=min&&d<=max)
+                                    toWrite+="p,";
+                                else
+                                    toWrite+="*p,";
+                            }
+                            else
+                                toWrite+=",";
+                            index++;
+                        }
+                    }
                 }
                 if(nonEmpty){
                     for(int a=0;a<dph.get(1)[0];a++)
@@ -271,6 +298,7 @@ private static String source;
         }
         s.close(); w.close();
         JOptionPane.showMessageDialog(myPanel, "Finished. Results stored in "+System.getProperty("user.dir")+"\\output.csv.");
+        System.out.println(System.currentTimeMillis()-start);
         System.exit(0);
     }
     
@@ -326,6 +354,25 @@ private static String source;
             }
         }
         return true;
+    }
+    
+    public static boolean containsIgnoreCase(String src, String what) {
+        final int length = what.length();
+        if (length == 0)
+            return true; // Empty string is contained
+
+        final char firstLo = Character.toLowerCase(what.charAt(0));
+        final char firstUp = Character.toUpperCase(what.charAt(0));
+
+        for (int i = src.length() - length; i >= 0; i--) {
+            // Quick check before calling the more expensive regionMatches() method:
+            final char ch = src.charAt(i);
+            if (ch != firstLo && ch != firstUp)
+                continue;
+            if (src.regionMatches(true, i, what, 0, length))
+                return true;
+        }
+        return false;
     }
     
 }
