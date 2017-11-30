@@ -41,13 +41,12 @@ private static String source;
         BufferedReader s = new BufferedReader(new FileReader(new File(source)));
         String line[];
         int llength=0;
-        HashMap<String,Integer> geneNameHash = new HashMap<>();
-        HashMap<String,Integer> OrganismHash = new HashMap<>();
 	HashMap<Integer,int[]> dph = new HashMap<>();
         /*dph identifies where record indexes begin and end. Each record
         consists of 2 numbers:
         1. The record starting index
         2. The record ending index*/
+        int geneHeaderIndex=-1, organismHeaderIndex=-1;
         if(s.ready()){
             String[] read = s.readLine().split(",");
             llength=read.length;
@@ -58,6 +57,10 @@ private static String source;
             while(c1<line.length){
                 int currentIndex=c1;
                 while(c1<line.length-1&&!line[c1+1].substring(0,1).equals("#")){
+                    if(containsIgnoreCase(line[c1],"gene name")||line[c1].equalsIgnoreCase("gene"))
+                        geneHeaderIndex=c1;
+                    if(containsIgnoreCase(line[c1],"organism")||containsIgnoreCase(line[c1],"species"))
+                        organismHeaderIndex=c1;
                     c1++;
                 }
                 dph.put(i, new int[]{currentIndex,c1});
@@ -65,6 +68,8 @@ private static String source;
                 c1++;
             }
         }
+        HashMap<String,Integer> geneNameHash=new HashMap<>();
+        HashMap<String,Integer> OrganismHash=new HashMap<>();
         JTextField[] columns=new JTextField[dph.get(0)[1]+1];
         String[] columnQuery=new String[columns.length];
         for(int a=0; a<columns.length; a++){
@@ -89,11 +94,11 @@ private static String source;
             myPanel.add(columns[a]);
         }
         
-        JTextField minField = new JTextField(5);
-        JTextField maxField = new JTextField(5);
-        JTextField minPoints = new JTextField(5);
-        JTextField minGeneNames = new JTextField(5);
-        JTextField minOrganisms = new JTextField(5);
+        JTextField minField = new JTextField("0");
+        JTextField maxField = new JTextField("1000000");
+        JTextField minPoints = new JTextField("0");
+        JTextField minGeneNames = new JTextField("0");
+        JTextField minOrganisms = new JTextField("0");
         
         myPanel.add(new JLabel("Minimum intensity:"));
         myPanel.add(minField);
@@ -101,12 +106,16 @@ private static String source;
         myPanel.add(maxField);
         myPanel.add(new JLabel("Remove records with < this many data points:"));
         myPanel.add(minPoints);
-        myPanel.add(new JLabel("Remove records with gene names appearing < this many times:"));
-        myPanel.add(minGeneNames);
-        myPanel.add(new JLabel("Remove records with organism names appearing < this many times:"));
-        myPanel.add(minOrganisms);
-        double min=-1; //intensity range minimum
-        double max=-1; //intensity range maximum
+        if(geneHeaderIndex>=0){
+            myPanel.add(new JLabel("Remove records with gene names appearing < this many times:"));
+            myPanel.add(minGeneNames);
+        }
+        if(organismHeaderIndex>=0){
+            myPanel.add(new JLabel("Remove records with organism names appearing < this many times:"));
+            myPanel.add(minOrganisms);
+        }
+        double min=0; //intensity range minimum
+        double max=Double.MAX_VALUE; //intensity range maximum
         int ming=0; //min # gene names
         int mino=0; //min # organism names
         int minp=0; //min # data points per record
@@ -118,8 +127,12 @@ private static String source;
             
             String mi=minField.getText();
             String ma=maxField.getText();
-            String mings=minGeneNames.getText();
-            String minos=minOrganisms.getText();
+            String mings="0";
+            if(geneHeaderIndex>=0)
+                mings=minGeneNames.getText();
+            String minos="0";
+            if(geneHeaderIndex>=0)
+                mings=minOrganisms.getText();
             String minps=minPoints.getText();
             while((!isDouble(mi)||!isDouble(ma)||!isInteger(mings)||!isInteger(minos)||!isInteger(minps))&&result==JOptionPane.OK_OPTION){
                 result = JOptionPane.showConfirmDialog(null, myPanel, 
@@ -130,8 +143,10 @@ private static String source;
                     
                     mi=minField.getText();
                     ma=maxField.getText();
-                    mings=minGeneNames.getText();
-                    minos=minOrganisms.getText();
+                    if(geneHeaderIndex>=0)
+                        mings=minGeneNames.getText();
+                    if(organismHeaderIndex>=0)
+                        minos=minOrganisms.getText();
                     minps=minPoints.getText();
                 }
                 else System.exit(0);
@@ -142,15 +157,16 @@ private static String source;
                     
                 min=Double.parseDouble(mi);
                 max=Double.parseDouble(ma);
-                ming=Integer.parseInt(mings);
-                mino=Integer.parseInt(minos);
+                if(geneHeaderIndex>=0)
+                    ming=Integer.parseInt(mings);
+                if(organismHeaderIndex>=0)
+                    mino=Integer.parseInt(minos);
                 minp=Integer.parseInt(minps);
             }
             else System.exit(0);
         }
         else System.exit(0);
         
-        long start = System.currentTimeMillis();
         line=new String[llength];
         while(s.ready()){
             String[] read = s.readLine().split(",");
@@ -173,16 +189,20 @@ private static String source;
                 line[i-count]="";
                 i++;
             }
-            String geneName=line[1];
-            String organism=line[5];
-            if(geneNameHash.containsKey(geneName))
-                geneNameHash.replace(geneName, geneNameHash.get(geneName)+1);
-            else
-                geneNameHash.put(geneName, 1);
-            if(OrganismHash.containsKey(organism))
-                OrganismHash.replace(organism, OrganismHash.get(organism)+1);
-            else
-                OrganismHash.put(organism, 1);
+            if(geneHeaderIndex>=0){
+                String geneName=line[geneHeaderIndex];
+                if(geneNameHash.containsKey(geneName))
+                    geneNameHash.replace(geneName, geneNameHash.get(geneName)+1);
+                else
+                    geneNameHash.put(geneName, 1);
+            }
+            if(organismHeaderIndex>=0){
+                String organism=line[organismHeaderIndex];
+                if(OrganismHash.containsKey(organism))
+                    OrganismHash.replace(organism, OrganismHash.get(organism)+1);
+                else
+                    OrganismHash.put(organism, 1);
+            }
         }
         s.close();
         
@@ -236,7 +256,12 @@ private static String source;
                     allSearchTermsMatch=false;
                 i++;
             }
-            if(allSearchTermsMatch&&geneNameHash.get(line[1])>=ming&&OrganismHash.get(line[5])>=mino)
+            boolean allMatch=allSearchTermsMatch;
+            if(geneHeaderIndex>=0)
+                allMatch=allMatch&&geneNameHash.get(line[geneHeaderIndex])>=ming;
+            if(organismHeaderIndex>=0)
+                allMatch=allMatch&&OrganismHash.get(line[organismHeaderIndex])>=mino;
+            if(allMatch)
             {
                 /*nonEmpty is used to check whether at least 1 sub-record (such as a cadaver)
                 contains at least 1 point matching the criteria entered by the user and, if so, the entire line is written.*/
@@ -298,7 +323,6 @@ private static String source;
         }
         s.close(); w.close();
         JOptionPane.showMessageDialog(myPanel, "Finished. Results stored in "+System.getProperty("user.dir")+"\\output.csv.");
-        System.out.println(System.currentTimeMillis()-start);
         System.exit(0);
     }
     
