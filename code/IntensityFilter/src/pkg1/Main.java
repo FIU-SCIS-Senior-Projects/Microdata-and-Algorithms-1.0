@@ -106,11 +106,11 @@ private static String source;
         myPanel.add(maxField);
         myPanel.add(new JLabel("Remove records with < this many data points:"));
         myPanel.add(minPoints);
-        if(geneHeaderIndex>=0){
+        if(geneHeaderIndex>-1){
             myPanel.add(new JLabel("Remove records with gene names appearing < this many times:"));
             myPanel.add(minGeneNames);
         }
-        if(organismHeaderIndex>=0){
+        if(organismHeaderIndex>-1){
             myPanel.add(new JLabel("Remove records with organism names appearing < this many times:"));
             myPanel.add(minOrganisms);
         }
@@ -128,11 +128,11 @@ private static String source;
             String mi=minField.getText();
             String ma=maxField.getText();
             String mings="0";
-            if(geneHeaderIndex>=0)
+            if(geneHeaderIndex>-1)
                 mings=minGeneNames.getText();
             String minos="0";
-            if(geneHeaderIndex>=0)
-                mings=minOrganisms.getText();
+            if(organismHeaderIndex>-1)
+                minos=minOrganisms.getText();
             String minps=minPoints.getText();
             while((!isDouble(mi)||!isDouble(ma)||!isInteger(mings)||!isInteger(minos)||!isInteger(minps))&&result==JOptionPane.OK_OPTION){
                 result = JOptionPane.showConfirmDialog(null, myPanel, 
@@ -143,9 +143,9 @@ private static String source;
                     
                     mi=minField.getText();
                     ma=maxField.getText();
-                    if(geneHeaderIndex>=0)
+                    if(geneHeaderIndex>-1)
                         mings=minGeneNames.getText();
-                    if(organismHeaderIndex>=0)
+                    if(organismHeaderIndex>-1)
                         minos=minOrganisms.getText();
                     minps=minPoints.getText();
                 }
@@ -157,9 +157,9 @@ private static String source;
                     
                 min=Double.parseDouble(mi);
                 max=Double.parseDouble(ma);
-                if(geneHeaderIndex>=0)
+                if(geneHeaderIndex>-1)
                     ming=Integer.parseInt(mings);
-                if(organismHeaderIndex>=0)
+                if(organismHeaderIndex>-1)
                     mino=Integer.parseInt(minos);
                 minp=Integer.parseInt(minps);
             }
@@ -189,14 +189,14 @@ private static String source;
                 line[i-count]="";
                 i++;
             }
-            if(geneHeaderIndex>=0){
+            if(geneHeaderIndex>-1){
                 String geneName=line[geneHeaderIndex];
                 if(geneNameHash.containsKey(geneName))
                     geneNameHash.replace(geneName, geneNameHash.get(geneName)+1);
                 else
                     geneNameHash.put(geneName, 1);
             }
-            if(organismHeaderIndex>=0){
+            if(organismHeaderIndex>-1){
                 String organism=line[organismHeaderIndex];
                 if(OrganismHash.containsKey(organism))
                     OrganismHash.replace(organism, OrganismHash.get(organism)+1);
@@ -257,9 +257,9 @@ private static String source;
                 i++;
             }
             boolean allMatch=allSearchTermsMatch;
-            if(geneHeaderIndex>=0)
+            if(geneHeaderIndex>-1)
                 allMatch=allMatch&&geneNameHash.get(line[geneHeaderIndex])>=ming;
-            if(organismHeaderIndex>=0)
+            if(organismHeaderIndex>-1)
                 allMatch=allMatch&&OrganismHash.get(line[organismHeaderIndex])>=mino;
             if(allMatch)
             {
