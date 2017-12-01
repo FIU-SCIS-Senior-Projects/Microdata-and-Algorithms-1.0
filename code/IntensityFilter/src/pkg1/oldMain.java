@@ -14,9 +14,9 @@ import java.io.FileWriter;
 import javax.swing.*;
 import java.util.HashMap;
 
-public class Main {
+public class oldMain {
 private static String source;
-    public Main() {
+    public oldMain() {
         
     }
     
