@@ -1,2 +1,0 @@
-round intensities to nearest integer
-filter intensity to at least n data points, all between min-max range, allow for multiple cadavers
