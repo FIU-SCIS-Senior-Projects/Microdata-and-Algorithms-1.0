@@ -1,9 +1,0 @@
-priority:
-1. range
-2. # time points
-3./4./5. #gene names,#organism, column search
-
--case insentive
-
--Round to integer
-2391
