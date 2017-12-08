@@ -166,7 +166,6 @@ private static String source;
             else System.exit(0);
         }
         else System.exit(0);
-        long start=System.currentTimeMillis();
         line=new String[llength];
         while(s.ready()){
             String[] read = s.readLine().split(",");
@@ -322,7 +321,6 @@ private static String source;
             }
         }
         s.close(); w.close();
-        System.out.println((System.currentTimeMillis()-start)/1000);
         JOptionPane.showMessageDialog(myPanel, "Finished. Results stored in "+System.getProperty("user.dir")+"\\output.csv.");
         System.exit(0);
     }
